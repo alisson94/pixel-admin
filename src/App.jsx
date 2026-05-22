@@ -9,6 +9,7 @@ import { ClientesList } from './pages/ClientesList'
 import { ClienteForm } from './pages/ClienteForm'
 import { Campanhas } from './pages/Campanhas'
 import { Redirect } from './pages/Redirect'
+import { TelaCarregamentoEditor } from './pages/TelaCarregamentoEditor'
 
 function hasRequiredEnv() {
   return Boolean(
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/clientes/novo" element={<ClienteForm />} />
           <Route path="/clientes/:id/editar" element={<ClienteForm />} />
           <Route path="/clientes/:id/campanhas" element={<Campanhas />} />
+          <Route path="/clientes/:id/tela-carregamento" element={<TelaCarregamentoEditor />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
