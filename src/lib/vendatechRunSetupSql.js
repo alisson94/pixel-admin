@@ -18,8 +18,11 @@ BEGIN
     tag_compra TEXT,
     whatsapp_message TEXT,
     test_event_code TEXT,
+    loading_screen_html TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
   );
+
+  ALTER TABLE accounts ADD COLUMN IF NOT EXISTS loading_screen_html TEXT;
 
   CREATE TABLE IF NOT EXISTS campaigns (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

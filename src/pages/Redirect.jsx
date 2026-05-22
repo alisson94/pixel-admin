@@ -70,6 +70,7 @@ export function Redirect() {
   const { accountId, campaignSlug } = useParams()
   const [searchParams] = useSearchParams()
   const [error, setError] = useState(null)
+  const [account, setAccount] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -86,7 +87,7 @@ export function Redirect() {
 
       const accountRes = await supabase
         .from('accounts')
-        .select('whatsapp_number, meta_pixel_id, whatsapp_message')
+        .select('whatsapp_number, meta_pixel_id, whatsapp_message, loading_screen_html')
         .eq('id', accountId)
         .maybeSingle()
 
@@ -101,6 +102,7 @@ export function Redirect() {
         setError('Conta não encontrada')
         return
       }
+      setAccount(account)
 
       const pixelId = account.meta_pixel_id?.trim()
       if (pixelId) {
@@ -161,16 +163,28 @@ export function Redirect() {
     }
   }, [accountId, campaignSlug, searchParams.toString()])
 
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0a0a0a]">
+        <p className="max-w-sm px-4 text-center text-sm text-foreground/80">{error}</p>
+      </div>
+    )
+  }
+
+  if (account?.loading_screen_html?.trim()) {
+    return (
+      <iframe
+        srcDoc={account.loading_screen_html}
+        title="Carregando"
+        className="fixed inset-0 h-screen w-screen border-0"
+      />
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0a0a0a]">
-      {error ? (
-        <p className="max-w-sm px-4 text-center text-sm text-foreground/80">{error}</p>
-      ) : (
-        <>
-          <Spinner />
-          <p className="text-sm font-medium tracking-wide text-foreground/60">Redirecionando...</p>
-        </>
-      )}
+      <Spinner />
+      <p className="text-sm font-medium tracking-wide text-foreground/60">Redirecionando...</p>
     </div>
   )
 }
