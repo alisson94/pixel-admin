@@ -36,7 +36,7 @@ export default function App() {
           <Route path="/clientes/novo" element={<ClienteForm />} />
           <Route path="/clientes/:id/editar" element={<ClienteForm />} />
           <Route path="/clientes/:id/campanhas" element={<Campanhas />} />
-          <Route path="/clientes/:id/tela-carregamento" element={<TelaCarregamentoEditor />} />
+          <Route path="/clientes/:id/campanhas/:campaignId/tela-carregamento" element={<TelaCarregamentoEditor />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

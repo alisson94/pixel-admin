@@ -41,44 +41,51 @@ const DEFAULT_HTML = `<!DOCTYPE html>
 `
 
 export function TelaCarregamentoEditor() {
-  const { id } = useParams()
+  const { id: accountId, campaignId } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [html, setHtml] = useState('')
-  const [accountName, setAccountName] = useState('')
+  const [minSeconds, setMinSeconds] = useState('')
+  const [campaignName, setCampaignName] = useState('')
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       const { data, error } = await supabase
-        .from('accounts')
-        .select('name, loading_screen_html')
-        .eq('id', id)
+        .from('campaigns')
+        .select('name, account_id, loading_screen_html, min_display_seconds')
+        .eq('id', campaignId)
         .single()
       if (cancelled) return
       if (error || !data) {
-        toast.error(error?.message || 'Cliente não encontrado')
-        navigate('/clientes', { replace: true })
+        toast.error(error?.message || 'Campanha não encontrada')
+        navigate(`/clientes/${accountId}/campanhas`, { replace: true })
         return
       }
-      setAccountName(data.name ?? '')
+      setCampaignName(data.name ?? '')
       setHtml(data.loading_screen_html ?? '')
+      setMinSeconds(data.min_display_seconds == null ? '' : String(data.min_display_seconds))
       setLoading(false)
     })()
     return () => {
       cancelled = true
     }
-  }, [id, navigate])
+  }, [accountId, campaignId, navigate])
 
   async function handleSave() {
+    const parsed = minSeconds.trim() === '' ? null : Number(minSeconds.replace(',', '.'))
+    if (parsed != null && (!Number.isFinite(parsed) || parsed < 0)) {
+      toast.error('Tempo mínimo inválido')
+      return
+    }
     setSaving(true)
     try {
       const value = html.trim() ? html : null
       const { error } = await supabase
-        .from('accounts')
-        .update({ loading_screen_html: value })
-        .eq('id', id)
+        .from('campaigns')
+        .update({ loading_screen_html: value, min_display_seconds: parsed })
+        .eq('id', campaignId)
       if (error) {
         toast.error(error.message)
         return
@@ -111,12 +118,27 @@ export function TelaCarregamentoEditor() {
         <div>
           <h1 className="text-xl font-semibold text-foreground">Tela de carregamento</h1>
           <p className="text-sm text-foreground/60">
-            {accountName ? `Cliente: ${accountName}` : null}
+            {campaignName ? `Campanha: ${campaignName}` : null}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5">
+            <label htmlFor="min-seconds" className="text-xs font-medium text-foreground/80">
+              Tempo mínimo (s)
+            </label>
+            <input
+              id="min-seconds"
+              type="number"
+              min="0"
+              step="0.1"
+              value={minSeconds}
+              onChange={(ev) => setMinSeconds(ev.target.value)}
+              placeholder="0"
+              className="w-16 rounded border border-border bg-surface px-2 py-1 text-sm text-foreground outline-none ring-primary/30 focus:ring-2"
+            />
+          </div>
           <Link
-            to={`/clientes/${id}/editar`}
+            to={`/clientes/${accountId}/campanhas`}
             className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-background"
           >
             Voltar
