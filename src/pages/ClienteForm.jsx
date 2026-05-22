@@ -155,21 +155,11 @@ export function ClienteForm() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-xl font-semibold text-foreground">{isNew ? 'Novo cliente' : 'Editar cliente'}</h1>
-        <div className="flex items-center gap-4">
-          {!isNew ? (
-            <Link
-              to={`/clientes/${id}/tela-carregamento`}
-              className="text-sm text-primary hover:underline"
-            >
-              Personalizar tela de carregamento
-            </Link>
-          ) : null}
-          <Link to="/clientes" className="text-sm text-primary hover:underline">
-            Voltar
-          </Link>
-        </div>
+        <Link to="/clientes" className="text-sm text-primary hover:underline">
+          Voltar
+        </Link>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-border bg-surface p-6">

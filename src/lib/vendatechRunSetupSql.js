@@ -30,9 +30,12 @@ BEGIN
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
     active BOOLEAN DEFAULT TRUE NOT NULL,
+    loading_screen_html TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(account_id, slug)
   );
+
+  ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS loading_screen_html TEXT;
 
   CREATE TABLE IF NOT EXISTS sessions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

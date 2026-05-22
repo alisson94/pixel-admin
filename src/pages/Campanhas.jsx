@@ -209,6 +209,12 @@ export function Campanhas() {
                         >
                           {copied === c.id ? 'Copiado!' : 'Copiar link'}
                         </button>
+                        <Link
+                          to={`/clientes/${accountId}/campanhas/${c.id}/tela-carregamento`}
+                          className="rounded border border-border px-2 py-1 text-xs font-medium hover:border-primary/40"
+                        >
+                          Personalizar tela
+                        </Link>
                         <button
                           type="button"
                           disabled={togglingId === c.id}

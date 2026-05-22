@@ -70,7 +70,8 @@ export function Redirect() {
   const { accountId, campaignSlug } = useParams()
   const [searchParams] = useSearchParams()
   const [error, setError] = useState(null)
-  const [account, setAccount] = useState(null)
+  const [campaign, setCampaign] = useState(null)
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -85,11 +86,20 @@ export function Redirect() {
 
       const fbc = fbclid ? `fb.1.${Date.now()}.${fbclid}` : null
 
-      const accountRes = await supabase
-        .from('accounts')
-        .select('whatsapp_number, meta_pixel_id, whatsapp_message, loading_screen_html')
-        .eq('id', accountId)
-        .maybeSingle()
+      const [accountRes, campaignRes] = await Promise.all([
+        supabase
+          .from('accounts')
+          .select('whatsapp_number, meta_pixel_id, whatsapp_message')
+          .eq('id', accountId)
+          .maybeSingle(),
+        supabase
+          .from('campaigns')
+          .select('id, loading_screen_html')
+          .eq('account_id', accountId)
+          .eq('slug', campaignSlug)
+          .eq('active', true)
+          .maybeSingle(),
+      ])
 
       if (cancelled) return
 
@@ -102,35 +112,28 @@ export function Redirect() {
         setError('Conta não encontrada')
         return
       }
-      setAccount(account)
+
+      if (campaignRes.error) {
+        setError(campaignRes.error.message)
+        return
+      }
+      const campaignData = campaignRes.data
+
+      setCampaign(campaignData)
+      setDataLoaded(true)
 
       const pixelId = account.meta_pixel_id?.trim()
       if (pixelId) {
         initMetaPixel(pixelId)
       }
 
-      const [fbp, campaignRes] = await Promise.all([
-        waitForFbp(3000),
-        supabase
-          .from('campaigns')
-          .select('id')
-          .eq('account_id', accountId)
-          .eq('slug', campaignSlug)
-          .eq('active', true)
-          .maybeSingle(),
-      ])
+      const fbp = await waitForFbp(3000)
 
       if (cancelled) return
 
-      const campaign = campaignRes.data
-      if (campaignRes.error) {
-        setError(campaignRes.error.message)
-        return
-      }
-
-      if (campaign?.id) {
+      if (campaignData?.id) {
         const { error: insErr } = await supabase.from('sessions').insert({
-          campaign_id: campaign.id,
+          campaign_id: campaignData.id,
           account_id: accountId,
           utm_source,
           utm_medium,
@@ -171,10 +174,14 @@ export function Redirect() {
     )
   }
 
-  if (account?.loading_screen_html?.trim()) {
+  if (!dataLoaded) {
+    return <div className="fixed inset-0 bg-[#0a0a0a]" />
+  }
+
+  if (campaign?.loading_screen_html?.trim()) {
     return (
       <iframe
-        srcDoc={account.loading_screen_html}
+        srcDoc={campaign.loading_screen_html}
         title="Carregando"
         className="fixed inset-0 h-screen w-screen border-0"
       />

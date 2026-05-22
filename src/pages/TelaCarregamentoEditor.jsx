@@ -41,44 +41,44 @@ const DEFAULT_HTML = `<!DOCTYPE html>
 `
 
 export function TelaCarregamentoEditor() {
-  const { id } = useParams()
+  const { id: accountId, campaignId } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [html, setHtml] = useState('')
-  const [accountName, setAccountName] = useState('')
+  const [campaignName, setCampaignName] = useState('')
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       const { data, error } = await supabase
-        .from('accounts')
-        .select('name, loading_screen_html')
-        .eq('id', id)
+        .from('campaigns')
+        .select('name, account_id, loading_screen_html')
+        .eq('id', campaignId)
         .single()
       if (cancelled) return
       if (error || !data) {
-        toast.error(error?.message || 'Cliente não encontrado')
-        navigate('/clientes', { replace: true })
+        toast.error(error?.message || 'Campanha não encontrada')
+        navigate(`/clientes/${accountId}/campanhas`, { replace: true })
         return
       }
-      setAccountName(data.name ?? '')
+      setCampaignName(data.name ?? '')
       setHtml(data.loading_screen_html ?? '')
       setLoading(false)
     })()
     return () => {
       cancelled = true
     }
-  }, [id, navigate])
+  }, [accountId, campaignId, navigate])
 
   async function handleSave() {
     setSaving(true)
     try {
       const value = html.trim() ? html : null
       const { error } = await supabase
-        .from('accounts')
+        .from('campaigns')
         .update({ loading_screen_html: value })
-        .eq('id', id)
+        .eq('id', campaignId)
       if (error) {
         toast.error(error.message)
         return
@@ -111,12 +111,12 @@ export function TelaCarregamentoEditor() {
         <div>
           <h1 className="text-xl font-semibold text-foreground">Tela de carregamento</h1>
           <p className="text-sm text-foreground/60">
-            {accountName ? `Cliente: ${accountName}` : null}
+            {campaignName ? `Campanha: ${campaignName}` : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            to={`/clientes/${id}/editar`}
+            to={`/clientes/${accountId}/campanhas`}
             className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-background"
           >
             Voltar
