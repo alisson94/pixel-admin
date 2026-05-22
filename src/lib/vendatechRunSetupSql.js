@@ -32,12 +32,14 @@ BEGIN
     active BOOLEAN DEFAULT TRUE NOT NULL,
     loading_screen_html TEXT,
     min_display_seconds NUMERIC(5,2),
+    whatsapp_message TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(account_id, slug)
   );
 
   ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS loading_screen_html TEXT;
   ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS min_display_seconds NUMERIC(5,2);
+  ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS whatsapp_message TEXT;
 
   CREATE TABLE IF NOT EXISTS sessions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

@@ -94,7 +94,7 @@ export function Redirect() {
           .maybeSingle(),
         supabase
           .from('campaigns')
-          .select('id, loading_screen_html, min_display_seconds')
+          .select('id, loading_screen_html, min_display_seconds, whatsapp_message')
           .eq('account_id', accountId)
           .eq('slug', campaignSlug)
           .eq('active', true)
@@ -150,7 +150,8 @@ export function Redirect() {
         }
       }
 
-      const wa = buildWaUrl(account.whatsapp_number, account.whatsapp_message)
+      const message = campaignData?.whatsapp_message?.trim() || account.whatsapp_message
+      const wa = buildWaUrl(account.whatsapp_number, message)
       if (!wa) {
         setError('WhatsApp não configurado para esta conta')
         return

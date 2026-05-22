@@ -47,14 +47,16 @@ export function TelaCarregamentoEditor() {
   const [saving, setSaving] = useState(false)
   const [html, setHtml] = useState('')
   const [minSeconds, setMinSeconds] = useState('')
+  const [whatsappMessage, setWhatsappMessage] = useState('')
   const [campaignName, setCampaignName] = useState('')
+  const [accountMessage, setAccountMessage] = useState('')
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       const { data, error } = await supabase
         .from('campaigns')
-        .select('name, account_id, loading_screen_html, min_display_seconds')
+        .select('name, account_id, loading_screen_html, min_display_seconds, whatsapp_message, accounts(whatsapp_message)')
         .eq('id', campaignId)
         .single()
       if (cancelled) return
@@ -66,6 +68,8 @@ export function TelaCarregamentoEditor() {
       setCampaignName(data.name ?? '')
       setHtml(data.loading_screen_html ?? '')
       setMinSeconds(data.min_display_seconds == null ? '' : String(data.min_display_seconds))
+      setWhatsappMessage(data.whatsapp_message ?? '')
+      setAccountMessage(data.accounts?.whatsapp_message ?? '')
       setLoading(false)
     })()
     return () => {
@@ -82,9 +86,10 @@ export function TelaCarregamentoEditor() {
     setSaving(true)
     try {
       const value = html.trim() ? html : null
+      const msg = whatsappMessage.trim() ? whatsappMessage : null
       const { error } = await supabase
         .from('campaigns')
-        .update({ loading_screen_html: value, min_display_seconds: parsed })
+        .update({ loading_screen_html: value, min_display_seconds: parsed, whatsapp_message: msg })
         .eq('id', campaignId)
       if (error) {
         toast.error(error.message)
@@ -174,6 +179,23 @@ export function TelaCarregamentoEditor() {
         <code className="rounded bg-background px-1">&lt;script&gt;</code>, imagens, animações).
         Quando o campo estiver vazio, a tela padrão preta com círculo vermelho é usada.
       </p>
+
+      <div className="rounded-md border border-border bg-surface p-4">
+        <label className="mb-1 block text-sm font-medium text-foreground">
+          Mensagem do WhatsApp (apenas para esta campanha)
+        </label>
+        <p className="mb-2 text-xs text-foreground/60">
+          Sobrescreve a mensagem padrão do cliente. Deixe vazio para usar a do cliente
+          {accountMessage ? `: "${accountMessage}"` : ' (nenhuma definida)'}.
+        </p>
+        <textarea
+          rows={3}
+          value={whatsappMessage}
+          onChange={(ev) => setWhatsappMessage(ev.target.value)}
+          placeholder={accountMessage || 'Texto pré-preenchido no wa.me'}
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none ring-primary/30 focus:ring-2"
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="space-y-2">
