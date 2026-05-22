@@ -94,7 +94,7 @@ export function Redirect() {
           .maybeSingle(),
         supabase
           .from('campaigns')
-          .select('id, loading_screen_html')
+          .select('id, loading_screen_html, min_display_seconds')
           .eq('account_id', accountId)
           .eq('slug', campaignSlug)
           .eq('active', true)
@@ -121,6 +121,7 @@ export function Redirect() {
 
       setCampaign(campaignData)
       setDataLoaded(true)
+      const displayStart = Date.now()
 
       const pixelId = account.meta_pixel_id?.trim()
       if (pixelId) {
@@ -154,6 +155,17 @@ export function Redirect() {
         setError('WhatsApp não configurado para esta conta')
         return
       }
+
+      const minSeconds = Number(campaignData?.min_display_seconds)
+      if (Number.isFinite(minSeconds) && minSeconds > 0) {
+        const elapsed = Date.now() - displayStart
+        const remaining = minSeconds * 1000 - elapsed
+        if (remaining > 0) {
+          await new Promise((r) => setTimeout(r, remaining))
+          if (cancelled) return
+        }
+      }
+
       window.location.replace(wa)
     }
 
